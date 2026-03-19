@@ -13,7 +13,7 @@ L'objectif est d'entraîner un modèle de détection d'objet (YOLO) à reconnaî
 Respectez **strictement** cette arborescence lors de vos `git push`. Ne pushez jamais vos images en vrac à la racine !
 
 ```text
-Projet_Naruto_N7/
+Projet_APPRENTISSAGE/
 ├── dataset/             <-- Données brutes de tout le monde
 │   ├── images/          <-- Placez TOUTES vos images .jpeg/.jpg ici
 │   └── labels/          <-- Placez TOUS vos fichiers .txt (YOLO) ici
