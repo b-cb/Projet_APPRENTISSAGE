@@ -1,0 +1,14 @@
+[
+  {"name": "dragon", "color": "#ff0000", "type": "any", "attributes": []},
+  {"name": "tigre", "color": "#ff8c00", "type": "any", "attributes": []},
+  {"name": "chien", "color": "#ffd700", "type": "any", "attributes": []},
+  {"name": "rat", "color": "#008000", "type": "any", "attributes": []},
+  {"name": "ram", "color": "#00ffff", "type": "any", "attributes": []},
+  {"name": "horse", "color": "#0000ff", "type": "any", "attributes": []},
+  {"name": "monkey", "color": "#800080", "type": "any", "attributes": []},
+  {"name": "bird", "color": "#ff00ff", "type": "any", "attributes": []},
+  {"name": "ox", "color": "#a52a2a", "type": "any", "attributes": []},
+  {"name": "serpent", "color": "#808080", "type": "any", "attributes": []},
+  {"name": "hare", "color": "#ffb6c1", "type": "any", "attributes": []},
+  {"name": "boar", "color": "#8b4513", "type": "any", "attributes": []}
+]
