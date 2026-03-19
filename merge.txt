@@ -1,8 +1,0 @@
-git add .
-git commit 
-git push
-git checkout main
-git pull
-git merge
-git push
-git checkout 
