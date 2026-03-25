@@ -17,7 +17,8 @@ void check_yolo_labels(const std::string& img_dir, const std::string& lbl_dir) {
     
     // Récupérer toutes les images
     for (const auto& entry : fs::directory_iterator(img_dir)) {
-        if (entry.path().extension() == ".jpg" || entry.path().extension() == ".jpeg") {
+        // Trouver les images .jpg, .jpeg, ou .png
+        if (entry.path().extension() == ".jpg" || entry.path().extension() == ".jpeg" || entry.path().extension() == ".png") {
             image_paths.push_back(entry.path());
         }
     }
@@ -49,6 +50,9 @@ void check_yolo_labels(const std::string& img_dir, const std::string& lbl_dir) {
             }
         }
 
+        cv::namedWindow("Verification", cv::WINDOW_NORMAL);
+        cv::resizeWindow("Verification", 1280, 720); // Adapte à ton écran
+        
         cv::imshow("Verification", img);
         char c = (char)cv::waitKey(0);
         if (c == 'q' || c == 27) break; // Quitter sur 'q' ou 'Echap'
