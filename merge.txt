@@ -1,0 +1,14 @@
+git checkout batiste
+git pull
+git checkout maxence
+git pull
+git checkout enzo
+git pull
+git checkout abel
+git pull
+git checkout main
+git pull
+git merge batiste
+git merge abel
+git merge enzo
+git merge maxence
