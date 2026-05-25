@@ -1,0 +1,124 @@
+\documentclass[11pt,a4paper]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{hyperref} 
+\usepackage{geometry}
+\usepackage{amsmath} % Ajouté pour pouvoir écrire de belles formules mathématiques
+\geometry{margin=2.5cm}
+
+\title{Rapport de Base de Données : Apprentissage Profond}
+\author{Comet-Barthe Batiste, Hourde Maxence, Fares Abel, Blanchard Enzo \\
+\medskip
+\small \textbf{Lien du dépôt Git :} \url{https://github.com/b-cb/Projet\_APPRENTISSAGE}}
+\date{Mars 2026}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\chapter{Rappel du sujet}
+
+Notre projet porte sur l'animé \textit{Naruto} et principalement sur la reconnaissance des \textbf{mudrās}, les signes de mains au nombre de 12 qui permettent à un personnage de déclencher un \textit{jutsu}. L'enchaînement de plusieurs mudrās forme une combinaison qui déclenche une technique unique. 
+
+Les mudrās que notre projet vise à reconnaître sont les suivants :
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{image-mains.jpeg} 
+    \caption{Les 12 signes de mains de l'univers Naruto.}
+\end{figure}
+
+\chapter{Création de la base de données}
+
+\section{Acquisition du jeu de données}
+Face à la rareté d'images de qualité exploitables sur le web pour ce sujet spécifique, nous avons constitué notre propre base de données photographique. Nous avons capturé des clichés des membres du groupe ainsi que de leur entourage réalisant les 12 mudrās. 
+
+Afin de garantir la robustesse future du modèle et sa capacité de généralisation, nous avons délibérément fait varier les paramètres suivants :
+\begin{itemize}
+    \item \textbf{Conditions lumineuses :} Variations d'exposition (intérieur, extérieur, contre-jour).
+    \item \textbf{Géométrie :} Diversité d'orientations des mains et centrage variable du sujet.
+    \item \textbf{Complexité de la scène :} Nombre de personnes présentes, présence de mudrās multiples sur une même image, et environnements (fonds) aux textures et couleurs variées.
+    \item \textbf{Diversité des sujets :} Variation du sexe des sujets, port d'accessoires (montres, bijoux) ou vêtements pouvant occulter partiellement le poignet.
+\end{itemize}
+
+Nous avons aussi mis des images avec aucun signe et des images avec plusieurs mains mais uniquement certaines qui faisaint une mudra.
+
+\section{Annotation et Labellisation}
+L'étape de labellisation a été réalisée via l'outil \textbf{CVAT} (Computer Vision Annotation Tool), déployé localement via \textbf{Docker} (port 8080). 
+
+Pour assurer la cohérence des classes entre les différents annotateurs du groupe, nous avons utilisé un fichier de configuration \textit{labels\_naruto.json}. Le processus d'annotation a consisté à détourer chaque signe par une "Bounding Box" ajustée au plus près.
+
+Les données ont été exportées au format \textbf{YOLO 1.1}. Contrairement aux formats de coordonnées absolues en pixels, chaque fichier \texttt{.txt} associé à une image contient des coordonnées \textbf{normalisées} par rapport aux dimensions de l'image. La structure d'une ligne est la suivante :
+\begin{center}
+    \texttt{<class\_id> <x\_center> <y\_center> <width> <height>}
+\end{center}
+Par exemple, une valeur de $x_{center} = 0.58$ indique que le centre de la main se situe à 58\% de la largeur de l'image. Ce format garantit que le réseau de neurones est indépendant de la résolution native des photographies en entrée.
+
+\section{Gestion et organisation du dépôt}
+Les images et leurs labels respectifs ont été centralisés dans les répertoires \texttt{dataset/images} et \texttt{dataset/labels}. Pour éviter tout conflit lors de la fusion (\textit{merge}) des branches sur GitHub, nous avons adopté une convention de nommage stricte : \texttt{prenom\_index.jpg} (exemple : \texttt{batiste\_001.jpg}). Cette méthode garantit l'unicité des fichiers au sein du répertoire commun.
+
+\section{Scripts de traitement}
+
+\subsection{Vérification des annotations}
+Afin de prévenir toute erreur de labellisation avant la phase d'apprentissage, nous avons développé un script C++ (\texttt{check\_boxes}). Ce dernier lit les fichiers d'annotation et re-projette les boîtes englobantes sur les images originales. Il effectue l'opération inverse de la normalisation YOLO pour retrouver les pixels :
+\begin{equation}
+    X_{pixel} = x_{center} \times \text{Largeur}_{image}
+\end{equation}
+Cette vérification visuelle nous a permis de corriger les décalages de boîtes ou les erreurs potentielles d'attribution de classe.
+
+\subsection{Données de la BdD}
+Un second script nous permet de connaître le nombre d'images global de la base de données, le nombre de signes détectés et le nombre de signe détecté pour chaque classe. Cela permet de s'assurer une base de données bien homogène.
+
+\subsection{Partitionnement des données }
+Le partitionnement de la base de données est une étape cruciale pour évaluer correctement les performances du modèle. Afin d'éviter tout biais lié à un déséquilibre ou une absence de certaines classes dans nos sous-ensembles, nous avons développé un script C++ réalisant un \textbf{partitionnement stratifié}. 
+
+Ce script lit l'identifiant de la classe dans chaque fichier d'annotation et applique une répartition théorique de \textbf{80\% / 10\% / 10\%} de manière indépendante pour chacun des 12 signes. Sur notre jeu de données final constitué de \textbf{412 photographies}, cette méthode garantit que chaque ensemble conserve une distribution représentative. 
+
+La répartition finale obtenue après exécution du script est la suivante :
+\begin{itemize}
+    \item \textbf{Entraînement (Train)} : 326 images ($\approx$ 79\%)
+    \item \textbf{Validation (Val)} : 36 images ($\approx$ 9\%)
+    \item \textbf{Test} : 50 images ($\approx$ 12\%)
+\end{itemize}
+
+Enfin, le script s'assure que chaque image déplacée vers les répertoires YOLO définitifs est rigoureusement accompagnée de son fichier \texttt{.txt} correspondant.
+
+\chapter{Illustration de la base de données}
+
+\section{Exemples tirés de la Base de Données}
+Afin d'illustrer la diversité de notre jeu de données (telle que décrite dans la section 2.1) ainsi que la précision de nos annotations, la Figure \ref{fig:mosaique} présente un échantillon de nos photographies. Idéalement, les boîtes englobantes (générées via notre script de vérification) y encadrent les mudrās.
+
+\begin{figure}[h]
+    \centering
+    % Ligne 1
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{photo1.jpg}
+        \caption{Signe classique, sujet bien centré.}
+    \end{minipage}\hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{photo2.jpg}
+        \caption{Variation du centrage.}
+    \end{minipage}
+    
+    \vspace{0.5cm} % Espace entre les deux lignes
+    
+    % Ligne 2
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{photo3.jpg}
+        \caption{Présence d'accessoires.}
+    \end{minipage}\hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{photo4.jpg}
+        \caption{Signes multiples.}
+    \end{minipage}
+    \caption{Échantillon représentatif de la diversité de notre base de données.}
+    \label{fig:mosaique}
+\end{figure}
