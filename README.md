@@ -10,5 +10,6 @@ Ce projet a pour but de créer un réseau de neurones qui permet de détecter le
 
 **Pour tester le réseau via la webcam**
 Activer la bulle, depuis /Test_YOLO faire la commande
-'''source env_yolo/bin/activate'''
-Puis : '''python3 test_webcam.py'''
+```bash
+source env_yolo/bin/activate
+python3 test_webcam.py
